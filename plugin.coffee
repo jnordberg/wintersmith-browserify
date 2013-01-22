@@ -2,6 +2,9 @@
 browserify = require 'browserify'
 path = require 'path'
 
+stripExtension = (filename) ->
+  filename.replace /(.+)\.[^.]+$/, '$1'
+
 module.exports = (wintersmith, callback) ->
 
   class BrowserifyPlugin extends wintersmith.ContentPlugin
@@ -9,7 +12,7 @@ module.exports = (wintersmith, callback) ->
     constructor: (@_filename, @_base) ->
 
     getFilename: ->
-      @_filename
+      "#{ stripExtension @_filename }.js"
 
     render: (locals, contents, templates, callback) ->
       bundle = browserify
@@ -31,5 +34,5 @@ module.exports = (wintersmith, callback) ->
   BrowserifyPlugin.fromFile = (filename, base, callback) ->
     callback null, new BrowserifyPlugin filename, base
 
-  wintersmith.registerContentPlugin 'scripts', '**/*.js', BrowserifyPlugin
+  wintersmith.registerContentPlugin 'scripts', '**/*.*(js|coffee)', BrowserifyPlugin
   callback()
