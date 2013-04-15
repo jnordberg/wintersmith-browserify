@@ -1,23 +1,25 @@
 
 browserify = require 'browserify'
-path = require 'path'
 
-stripExtension = (filename) ->
-  filename.replace /(.+)\.[^.]+$/, '$1'
+module.exports = (env, callback) ->
 
-module.exports = (wintersmith, callback) ->
+  class BrowserifyPlugin extends env.ContentPlugin
 
-  class BrowserifyPlugin extends wintersmith.ContentPlugin
-
-    constructor: (@_filename, @_base) ->
+    constructor: (@filepath) ->
 
     getFilename: ->
-      "#{ stripExtension @_filename }.js"
+      env.utils.stripExtension(@filepath.relative) + '.js'
 
-    render: (locals, contents, templates, callback) ->
-      bundle = browserify
+    getView: (locals, contents, templates, callback) ->
+
+      options =
         cache: false
         watch: false
+
+      for key, opt of env.config.browserify?
+        options[key] = opt
+
+      bundle = browserify opitons
 
       bundle.addListener 'syntaxError', (error) ->
         callback error
@@ -26,13 +28,13 @@ module.exports = (wintersmith, callback) ->
 
       # wrap in try catch since coffeescript parse errors will throw..
       try
-        bundle.addEntry path.join(@_base, @_filename)
+        bundle.addEntry @filepath.full
         callback? null, new Buffer bundle.bundle()
       catch error
         callback? error
 
-  BrowserifyPlugin.fromFile = (filename, base, callback) ->
-    callback null, new BrowserifyPlugin filename, base
+  BrowserifyPlugin.fromFile = (filepath, callback) ->
+    callback null, new BrowserifyPlugin filepath
 
-  wintersmith.registerContentPlugin 'scripts', '**/*.*(js|coffee)', BrowserifyPlugin
+  env.registerContentPlugin 'scripts', '**/*.*(js|coffee)', BrowserifyPlugin
   callback()
