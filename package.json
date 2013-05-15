@@ -1,11 +1,12 @@
 {
   "name": "wintersmith-browserify",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "author": "Johan Nordberg <its@johan-nordberg.com>",
   "description": "browserify for witnersmith",
   "license": "MIT",
   "dependencies": {
-    "browserify": "1.x.x",
-    "coffee-script": ">= 1.1.0"
+    "browserify": "2.13.x",
+    "coffee-script": ">= 1.1.0",
+    "caching-coffeeify": "~0.1.1"
   }
 }

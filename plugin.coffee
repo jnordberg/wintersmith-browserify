@@ -2,36 +2,31 @@
 browserify = require 'browserify'
 
 module.exports = (env, callback) ->
+  options = env.config.browserify or {}
+  options.transforms ?= ['caching-coffeeify']
+  options.debug ?= (env.mode is 'preview')
+  options.externals ?= {}
+  options.ignore ?= []
+
+  for transform, i in options.transforms
+    options.transforms[i] = require transform
 
   class BrowserifyPlugin extends env.ContentPlugin
 
     constructor: (@filepath) ->
+      @bundler = browserify()
+      @bundler.add @filepath.full
+      externals = options.externals[@filepath.relative] or []
+      @bundler.external file for file in externals
+      @bundler.ignore file for file in options.ignore
+      @bundler.transform transform for transform in options.transforms
 
     getFilename: ->
       env.utils.stripExtension(@filepath.relative) + '.js'
 
-    getView: ->
-      return (env, locals, contents, templates, callback) ->
-        options =
-          cache: false
-          watch: false
-
-        for key, opt of env.config.browserify?
-          options[key] = opt
-
-        bundle = browserify options
-
-        bundle.addListener 'syntaxError', (error) ->
-          callback error
-          # unset callback so we don't call it twice
-          callback = null
-
-        # wrap in try catch since coffeescript parse errors will throw..
-        try
-          bundle.addEntry @filepath.full
-          callback? null, new Buffer bundle.bundle()
-        catch error
-          callback? error
+    getView: -> (env, locals, contents, templates, callback) ->
+      stream = @bundler.bundle options
+      callback null, stream
 
   BrowserifyPlugin.fromFile = (filepath, callback) ->
     callback null, new BrowserifyPlugin filepath
