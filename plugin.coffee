@@ -21,6 +21,9 @@ module.exports = (env, callback) ->
       @bundler.ignore file for file in options.ignore
       @bundler.transform transform for transform in options.transforms
 
+    @property 'source', ->
+      require('fs').readFileSync(@filepath.full).toString()
+
     getFilename: ->
       env.utils.stripExtension(@filepath.relative) + '.js'
 
