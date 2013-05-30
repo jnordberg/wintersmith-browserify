@@ -10,8 +10,10 @@
     "browserify"
   ],
   "dependencies": {
-    "browserify": "2.13.x",
+    "browserify": "2.x",
     "coffee-script": ">= 1.1.0",
     "caching-coffeeify": "~0.1.1"
-  }
+  },
+  "homepage": "https://github.com/jnordberg/wintersmith-browserify",
+  "repository": "git://github.com/jnordberg/wintersmith-browserify.git"
 }
