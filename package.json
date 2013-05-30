@@ -1,7 +1,7 @@
 {
   "name": "wintersmith-browserify",
-  "version": "0.2.1",
-  "author": "Johan Nordberg <its@johan-nordberg.com>",
+  "version": "0.2.2",
+  "author": "Johan Nordberg <code@johan-nordberg.com>",
   "description": "Browserify plugin for Wintersmith",
   "license": "MIT",
   "keywords": [
