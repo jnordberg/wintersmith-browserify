@@ -7,6 +7,7 @@ module.exports = (env, callback) ->
   options.debug ?= (env.mode is 'preview')
   options.externals ?= {}
   options.ignore ?= []
+  options.extensions ?= ['.coffee']
 
   for transform, i in options.transforms
     options.transforms[i] = require transform
@@ -14,7 +15,8 @@ module.exports = (env, callback) ->
   class BrowserifyPlugin extends env.ContentPlugin
 
     constructor: (@filepath) ->
-      @bundler = browserify()
+      @bundler = browserify
+        extensions: options.extensions
       @bundler.add @filepath.full
       externals = options.externals[@filepath.relative] or []
       @bundler.external file for file in externals
