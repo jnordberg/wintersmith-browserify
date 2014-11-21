@@ -3,11 +3,12 @@ browserify = require 'browserify'
 
 module.exports = (env, callback) ->
   options = env.config.browserify or {}
-  options.transforms ?= ['caching-coffeeify']
+  options.transforms ?= ['coffeeify']
   options.debug ?= (env.mode is 'preview')
   options.externals ?= {}
   options.ignore ?= []
   options.extensions ?= ['.coffee']
+  options.plugins ?= []
 
   for transform, i in options.transforms
     options.transforms[i] = require transform
@@ -15,8 +16,7 @@ module.exports = (env, callback) ->
   class BrowserifyPlugin extends env.ContentPlugin
 
     constructor: (@filepath) ->
-      @bundler = browserify
-        extensions: options.extensions
+      @bundler = browserify options
       @bundler.add @filepath.full
       externals = options.externals[@filepath.relative] or []
       @bundler.external file for file in externals
@@ -30,7 +30,8 @@ module.exports = (env, callback) ->
       env.utils.stripExtension(@filepath.relative) + '.js'
 
     getView: -> (env, locals, contents, templates, callback) ->
-      stream = @bundler.bundle options
+      stream = @bundler.bundle()
+      @bundler.plugin(plugin, pluginOptions) for plugin, pluginOptions of options.plugins
       stream.on 'error', (error) =>
         # add better debuginfo to parse errors
         msg = ''
