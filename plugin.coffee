@@ -8,6 +8,7 @@ module.exports = (env, callback) ->
   options.externals ?= {}
   options.ignore ?= []
   options.extensions ?= ['.coffee']
+  options.plugins ?= []
 
   for transform, i in options.transforms
     options.transforms[i] = require transform
@@ -30,6 +31,7 @@ module.exports = (env, callback) ->
 
     getView: -> (env, locals, contents, templates, callback) ->
       stream = @bundler.bundle()
+      @bundler.plugin(plugin, pluginOptions) for plugin, pluginOptions of options.plugins
       stream.on 'error', (error) =>
         # add better debuginfo to parse errors
         msg = ''
