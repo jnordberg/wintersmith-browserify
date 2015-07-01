@@ -9,6 +9,14 @@ module.exports = (env, callback) ->
   options.ignore ?= []
   options.extensions ?= ['.js', '.coffee']
 
+  # watchify speeds up builds by only rebundling files that have changed
+  useWatchify = if options.watchify? then options.watchify else (env.mode is 'preview')
+
+  if useWatchify
+    watchify = require 'watchify'
+    options.cache = {}
+    options.packageCache = {}
+
   for transform, i in options.transforms
     options.transforms[i] = require transform
 
@@ -16,6 +24,8 @@ module.exports = (env, callback) ->
 
     constructor: (@filepath) ->
       @bundler = browserify options
+      if useWatchify
+        @bundler = watchify @bundler
       @bundler.add @filepath.full
       externals = options.externals[@filepath.relative] or []
       @bundler.external file for file in externals
