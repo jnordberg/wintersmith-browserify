@@ -6,6 +6,7 @@ module.exports = (env, callback) ->
   options.transforms ?= ['coffeeify']
   options.debug ?= (env.mode is 'preview')
   options.externals ?= {}
+  options.requires ?= {}
   options.ignore ?= []
   options.extensions ?= ['.js', '.coffee']
 
@@ -26,9 +27,18 @@ module.exports = (env, callback) ->
       @bundler = browserify options
       if useWatchify
         @bundler = watchify @bundler
+
       @bundler.add @filepath.full
-      externals = options.externals[@filepath.relative] or []
-      @bundler.external file for file in externals
+
+      for item in options.externals[@filepath.relative] or []
+        @bundler.external item
+
+      for item in options.requires[@filepath.relative] or []
+        name = item.name ? item.require ? item
+        opts = {}
+        opts.expose = item.expose if item.expose?
+        @bundler.require name, opts
+
       @bundler.ignore file for file in options.ignore
       @bundler.transform transform for transform in options.transforms
 
