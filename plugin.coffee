@@ -7,7 +7,7 @@ module.exports = (env, callback) ->
   options.debug ?= (env.mode is 'preview')
   options.externals ?= {}
   options.ignore ?= []
-  options.extensions ?= ['.coffee']
+  options.extensions ?= ['.js', '.coffee']
 
   for transform, i in options.transforms
     options.transforms[i] = require transform
@@ -51,5 +51,9 @@ module.exports = (env, callback) ->
   BrowserifyPlugin.fromFile = (filepath, callback) ->
     callback null, new BrowserifyPlugin filepath
 
-  env.registerContentPlugin 'scripts', '**/*.*(js|coffee)', BrowserifyPlugin
+  exts = options.extensions
+    .map (ext) -> ext[1..]
+    .join '|'
+
+  env.registerContentPlugin 'scripts', "**/*.*(#{ exts })", BrowserifyPlugin
   callback()
