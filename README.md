@@ -25,9 +25,9 @@ The `browserify` object in `config.json` is passed as browserify's bundle option
 
 In addition to browserify's standard options wintersmith-browserify adds the following:
 
-	* `requires` - `[{"filename": ["module", {name: "module", "expose": "exposed_name"}, ..]}, ..]` - per-file bundle.require() mapping
-	* `externals` - `[{"filename": ["module", ..]}, ..]` - per-file bundle.external() mapping
-	* `static` - `["filename", ..]` - list of files that will only be compiled once and cached in memory for subsequent requests
+  * `requires` - `[{"filename": ["module", {name: "module", "expose": "exposed_name"}, ..]}, ..]` - per-file bundle.require() mapping
+  * `externals` - `[{"filename": ["module", ..]}, ..]` - per-file bundle.external() mapping
+  * `static` - `["filename", ..]` - list of files that will only be compiled once and cached in memory for subsequent requests
 
 
 Example
