@@ -18,6 +18,12 @@ module.exports = (env, callback) ->
   options.ignore ?= []
   options.extensions ?= ['.js', '.coffee']
 
+  # fileGlob for matching - default to provided extensions
+  exts = options.extensions
+    .map (ext) -> ext[1..]
+    .join '|'
+  options.fileGlob ?= "**/*.*(#{ exts })"
+
   staticCache = {}
 
   # watchify speeds up builds by only rebundling files that have changed
@@ -100,9 +106,6 @@ module.exports = (env, callback) ->
   BrowserifyPlugin.fromFile = (filepath, callback) ->
     callback null, new BrowserifyPlugin filepath
 
-  exts = options.extensions
-    .map (ext) -> ext[1..]
-    .join '|'
+  env.registerContentPlugin 'scripts', options.fileGlob, BrowserifyPlugin
 
-  env.registerContentPlugin 'scripts', "**/*.*(#{ exts })", BrowserifyPlugin
   callback()
