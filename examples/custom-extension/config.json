@@ -1,0 +1,6 @@
+{
+  "plugins": ["./../../"],
+  "browserify": {
+    "extensions": [".browserify.js"]
+  }
+}
