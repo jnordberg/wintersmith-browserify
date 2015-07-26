@@ -28,6 +28,8 @@ In addition to browserify's standard options wintersmith-browserify adds the fol
   * `requires` - `[{"filename": ["module", {name: "module", "expose": "exposed_name"}, ..]}, ..]` - per-file bundle.require() mapping
   * `externals` - `[{"filename": ["module", ..]}, ..]` - per-file bundle.external() mapping
   * `static` - `["filename", ..]` - list of files that will only be compiled once and cached in memory for subsequent requests
+  * `extensions` - `[".ext", ..]` - list of file extensions for matching files - used for finding files in wintersmith and is passed on as the extensions option to browserify - default: [".js", ".coffee"]
+  * `fileGlob` - `"**/*.ext"` - file matching glob - provides more powerful control over files matched (overwrites extensions option if given) - default: "**/*.*(EXTENSIONS_OPTIONS)"
 
 
 Example
@@ -71,6 +73,45 @@ A project with a heavy dependency can impact bundle times, this example uses req
   200 /scripts/main.js BrowserifyPlugin 50ms
   ..
 ```
+
+
+Tips and Tricks
+---------------
+
+[Sometimes](https://github.com/jnordberg/wintersmith-browserify/issues/3) you
+only want to browserify specific files or folders instead of all of a particular
+file type. You can control exactly which files (and extension options) get
+passed to browserify with the `extensions` option. Any file extension listed
+here is matched by wintersmith and by browserify - for example, you can use
+the `extensions` option with '.coffee' to require('./foo') and have it resolve
+foo.coffee.
+
+By default, the `fileGlob` parameter is simply built from the `extensions` list,
+but you can manually set a fileGlob for even more control of the wintersmith
+matching side. Keep in mind that the `extensions` option is left unchanged (and
+is passed as an option to browserify).
+
+
+##### FileGlob / Extensions Examples:
+
+Only process 'filename.js.browserify' files using the `extensions` option:
+```
+    "browserify": {
+        "extensions": [
+            ".js.browserify"
+        ],
+        ...
+    }
+```
+
+Only process .js files in (or under) the 'scripts/prod' folder using the `fileGlob` option:
+```
+    "browserify": {
+        "fileGlob": "scripts/prod/**/*js",
+        ...
+    }
+```
+
 
 
 ---
