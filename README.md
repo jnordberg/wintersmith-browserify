@@ -30,6 +30,8 @@ In addition to browserify's standard options wintersmith-browserify adds the fol
   * `static` - `["filename", ..]` - list of files that will only be compiled once and cached in memory for subsequent requests
   * `extensions` - `[".ext", ..]` - list of file extensions for matching files - used for finding files in wintersmith and is passed on as the extensions option to browserify - default: [".js", ".coffee"]
   * `fileGlob` - `"**/*.ext"` - file matching glob - provides more powerful control over files matched (overwrites extensions option if given) - default: "**/*.*(EXTENSIONS_OPTIONS)"
+  * `staticLibs` - `["module", ..]` - static libraries added to separate bundle - for heavy dependencies that increase bundle times. you must include the static libs bundle for it to work, see below.
+  * `staticLibsFilename` - `"my/static/libs.js"]` - path where the static library bundle will be served, defaults to `scripts/libs.js`. the bundle is also in the content tree as `contents.browserifyLibs`
 
 
 Example
