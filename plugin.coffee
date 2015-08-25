@@ -16,6 +16,8 @@ module.exports = (env, callback) ->
   options.requires ?= {}
   options.static ?= []
   options.ignore ?= []
+  options.staticLibs ?= []
+  options.staticLibsFilename ?= 'scripts/libs.js'
   options.extensions ?= ['.js', '.coffee']
 
   # fileGlob for matching - default to provided extensions
@@ -37,6 +39,24 @@ module.exports = (env, callback) ->
   for transform, i in options.transforms
     options.transforms[i] = require transform
 
+  class BrowserifyStaticLibs extends env.ContentPlugin
+
+    constructor: ->
+      @bundler = browserify()
+      @bundler.require options.staticLibs
+
+    getFilename: -> options.staticLibsFilename
+
+    getView: -> (env, locals, contents, templates, callback) ->
+      if @_cache?
+        callback null, @_cache
+      else
+        stream = @bundler.bundle()
+        readStream stream, (error, result) =>
+          unless error?
+            @_cache = result
+          callback null, result
+
   class BrowserifyPlugin extends env.ContentPlugin
 
     constructor: (@filepath) ->
@@ -45,6 +65,8 @@ module.exports = (env, callback) ->
         @bundler = watchify @bundler
 
       @bundler.add @filepath.full
+
+      @bundler.external lib for lib in options.staticLibs
 
       for item in options.externals[@filepath.relative] or []
         @bundler.external item
@@ -107,5 +129,9 @@ module.exports = (env, callback) ->
     callback null, new BrowserifyPlugin filepath
 
   env.registerContentPlugin 'scripts', options.fileGlob, BrowserifyPlugin
+
+  staticLibs = new BrowserifyStaticLibs
+  env.registerGenerator 'browserify', (contents, callback) ->
+    callback null, {browserifyLibs: staticLibs}
 
   callback()
