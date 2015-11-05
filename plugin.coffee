@@ -55,7 +55,7 @@ module.exports = (env, callback) ->
         readStream stream, (error, result) =>
           unless error?
             @_cache = result
-          callback null, result
+          callback error, result
 
   class BrowserifyPlugin extends env.ContentPlugin
 
