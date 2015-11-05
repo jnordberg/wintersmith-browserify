@@ -39,11 +39,24 @@ module.exports = (env, callback) ->
   for transform, i in options.transforms
     options.transforms[i] = require transform
 
+  staticLibs = []
+  for lib in options.staticLibs
+    if typeof lib is 'string'
+      lib = {require: lib, expose: lib}
+    unless lib.require? and lib.expose?
+      throw new Error '
+        Library requires should be in the format:
+        {"require": "some-module", "expose": "some-name"}
+      '
+    staticLibs.push lib
+
   class BrowserifyStaticLibs extends env.ContentPlugin
 
     constructor: ->
       @bundler = browserify()
-      @bundler.require options.staticLibs
+      for lib in staticLibs
+        @bundler.require lib.require, {expose: lib.expose}
+      return
 
     getFilename: -> options.staticLibsFilename
 
@@ -66,7 +79,7 @@ module.exports = (env, callback) ->
 
       @bundler.add @filepath.full
 
-      @bundler.external lib for lib in options.staticLibs
+      @bundler.external lib.expose for lib in staticLibs
 
       for item in options.externals[@filepath.relative] or []
         @bundler.external item
@@ -130,8 +143,8 @@ module.exports = (env, callback) ->
 
   env.registerContentPlugin 'scripts', options.fileGlob, BrowserifyPlugin
 
-  staticLibs = new BrowserifyStaticLibs
+  libraryContent = new BrowserifyStaticLibs
   env.registerGenerator 'browserify', (contents, callback) ->
-    callback null, {browserifyLibs: staticLibs}
+    callback null, {browserifyLibs: libraryContent}
 
   callback()
