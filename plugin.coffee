@@ -117,20 +117,8 @@ module.exports = (env, callback) ->
 
     formatParseError: (error) =>
       # add better debuginfo to parse errors
-      msg = ''
-      if error.file?
-        msg += env.relativeContentsPath error.file
-      else
-        msg += @filepath.relative
-      msg += ':'
-      if error.location?.first_line?
-        msg += "#{ error.location.first_line }"
-      msg += " #{ error.message }"
-      if error.body? and error.location?.first_line? and error.location?.first_column?
-        line = error.body.split('\n')[error.location.first_line]
-        pad = (' ' for i in [0...error.location.first_column]).join('')
-        msg += "\n\n  #{ line }\n  #{ pad }^\n"
-      error.message = msg
+      if error.annotated?
+        error.message = error.annotated
 
     getView: ->
       if @filepath.relative in options.static
