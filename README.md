@@ -21,23 +21,39 @@ Then add `wintersmith-browserify` to your plugins list in wintersmith's `config.
 Options
 -------
 
-The `browserify` object in `config.json` is passed as browserify's bundle options.
+Set as the `browserify` object in your wintersmith `config.json`.
 
-In addition to browserify's standard options wintersmith-browserify adds the following:
+Name                 | Default                 | Description
+-------------------: |------------------------ | --------------------------------------
+`ignore`             | `[]`                    | files to ignore `["filename", ..]`
+`transforms`         | `["coffeeify"]`         | list of transform modules to can be in the format `[["module", {"some": "option"}], ..]` to pass options to transforms
+`plugins`            | `[]`                    | list of browserify plugin modules, same format as transforms
+`requires`           | `[]`                    | per-file bundle.require() mapping - `[{"filename": ["module", {name: "module", "expose": "exposed_name"}, ..]}, ..]`
+`externals`          | `[]`                    | per-file bundle.external() mapping - `[{"filename": ["module", ..]}, ..]`
+`static`             | `[]`                    | list of files that will only be compiled once and cached in memory for subsequent requests - `["filename", ..]`
+`extensions`         | `[".js", ".coffee"]`    | list of file extensions for matching files - used for finding files in wintersmith and is passed on as the extensions option to browserify
+`fileGlob`           | `"**/*.*(extensions)"`  | file matching glob - provides more powerful control over files matched, e.g. `"my/files/*.js"`
+`staticLibs`         | `[]`                    | static libraries added to separate bundle - for heavy dependencies that increase bundle times. you must include the static libs bundle for it to work, see below.
+`staticLibsFilename` | `"scripts/libs.js"`     | path where the static library bundle will be served. the bundle is also in the content tree as `contents.browserifyLibs`
 
-  * `requires` - `[{"filename": ["module", {name: "module", "expose": "exposed_name"}, ..]}, ..]` - per-file bundle.require() mapping
-  * `externals` - `[{"filename": ["module", ..]}, ..]` - per-file bundle.external() mapping
-  * `static` - `["filename", ..]` - list of files that will only be compiled once and cached in memory for subsequent requests
-  * `extensions` - `[".ext", ..]` - list of file extensions for matching files - used for finding files in wintersmith and is passed on as the extensions option to browserify - default: [".js", ".coffee"]
-  * `fileGlob` - `"**/*.ext"` - file matching glob - provides more powerful control over files matched (overwrites extensions option if given) - default: "**/*.*(EXTENSIONS_OPTIONS)"
-  * `staticLibs` - `["module", ..]` - static libraries added to separate bundle - for heavy dependencies that increase bundle times. you must include the static libs bundle for it to work, see below.
-  * `staticLibsFilename` - `"my/static/libs.js"]` - path where the static library bundle will be served, defaults to `scripts/libs.js`. the bundle is also in the content tree as `contents.browserifyLibs`
+See https://github.com/substack/node-browserify#usage for more details.
 
 
 Example
 -------
 
-A project with a heavy dependency can impact bundle times, this example uses requires, externals and static options to include react.js with minimal overhead.
+A project with a heavy dependency can impact bundle times, you can move heavy dependencies out to a separate file that is bundled only once and then cached.
+
+```json
+{
+    "browserify": {
+        "staticLibs": ["d3"],
+        "staticLibsFilename": "js/libs.js"
+    }
+}
+```
+
+Or if you need more control, the same thing can be achieved using the externals, requires and static options.
 
 ```json
 {
@@ -60,6 +76,9 @@ A project with a heavy dependency can impact bundle times, this example uses req
         "static": ["scripts/libs.js"]
     }
 }
+```
+
+
 ```
 
 `wintersmith preview` output
