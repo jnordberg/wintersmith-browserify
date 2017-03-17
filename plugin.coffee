@@ -8,6 +8,17 @@ readStream = (stream, callback) ->
   stream.on 'data', (chunk) -> chunks.push chunk
   stream.on 'end', -> callback null, Buffer.concat chunks
 
+resolveOption = (option) ->
+  ### Resolve transform or plugin module option. Allows either a string for the
+      module name or an array where the first item is the module name and the
+      second is the options. E.g. `['coffeeify', {header: true}]` ###
+  if Array.isArray option
+    return {module: require option[0], options: option[1]}
+  else if typeof option is 'string'
+    return {module: require option}
+  else
+    throw new Error "Invalid option: #{ option }"
+
 module.exports = (env, callback) ->
   options = env.config.browserify or {}
   options.transforms ?= ['coffeeify']
@@ -19,6 +30,7 @@ module.exports = (env, callback) ->
   options.staticLibs ?= []
   options.staticLibsFilename ?= 'scripts/libs.js'
   options.extensions ?= ['.js', '.coffee']
+  options.plugins ?= []
 
   # fileGlob for matching - default to provided extensions
   exts = options.extensions
@@ -37,7 +49,10 @@ module.exports = (env, callback) ->
     options.packageCache = {}
 
   for transform, i in options.transforms
-    options.transforms[i] = require transform
+    options.transforms[i] = resolveOption transform
+
+  for plugin, i in options.plugins
+    options.plugins[i] = resolveOption plugin
 
   staticLibs = []
   for lib in options.staticLibs
@@ -91,7 +106,8 @@ module.exports = (env, callback) ->
         @bundler.require name, opts
 
       @bundler.ignore file for file in options.ignore
-      @bundler.transform transform for transform in options.transforms
+      @bundler.plugin p.module, p.options for p in options.plugins
+      @bundler.transform t.module, t.options for t in options.transforms
 
     @property 'source', ->
       require('fs').readFileSync(@filepath.full).toString()
