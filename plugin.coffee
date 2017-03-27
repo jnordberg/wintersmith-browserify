@@ -13,7 +13,7 @@ resolveOption = (option) ->
       module name or an array where the first item is the module name and the
       second is the options. E.g. `['coffeeify', {header: true}]` ###
   if Array.isArray option
-    return {module: require option[0], options: option[1]}
+    return {module: require(option[0]), options: option[1]}
   else if typeof option is 'string'
     return {module: require option}
   else
