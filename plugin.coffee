@@ -29,6 +29,7 @@ module.exports = (env, callback) ->
   options.ignore ?= []
   options.staticLibs ?= []
   options.staticLibsFilename ?= 'scripts/libs.js'
+  options.staticLibsBundle ?= false
   options.extensions ?= ['.js', '.coffee']
   options.plugins ?= []
 
@@ -43,6 +44,9 @@ module.exports = (env, callback) ->
   # watchify speeds up builds by only rebundling files that have changed
   useWatchify = if options.watchify? then options.watchify else (env.mode is 'preview')
 
+  # whether to include static libs in the main bundle when building
+  bundleStaticLibs = options.staticLibsBundle is true and env.mode isnt 'preview'
+
   if useWatchify
     watchify = require 'watchify'
     options.cache = {}
@@ -55,15 +59,16 @@ module.exports = (env, callback) ->
     options.plugins[i] = resolveOption plugin
 
   staticLibs = []
-  for lib in options.staticLibs
-    if typeof lib is 'string'
-      lib = {require: lib, expose: lib}
-    unless lib.require? and lib.expose?
-      throw new Error '
-        Library requires should be in the format:
-        {"require": "some-module", "expose": "some-name"}
-      '
-    staticLibs.push lib
+  unless bundleStaticLibs
+    for lib in options.staticLibs
+      if typeof lib is 'string'
+        lib = {require: lib, expose: lib}
+      unless lib.require? and lib.expose?
+        throw new Error '
+          Library requires should be in the format:
+          {"require": "some-module", "expose": "some-name"}
+        '
+      staticLibs.push lib
 
   class BrowserifyStaticLibs extends env.ContentPlugin
 
@@ -76,6 +81,9 @@ module.exports = (env, callback) ->
     getFilename: -> options.staticLibsFilename
 
     getView: -> (env, locals, contents, templates, callback) ->
+      if staticLibs.length is 0
+        callback null, null
+        return
       if @_cache?
         callback null, @_cache
       else
@@ -147,8 +155,10 @@ module.exports = (env, callback) ->
 
   env.registerContentPlugin 'scripts', options.fileGlob, BrowserifyPlugin
 
-  libraryContent = new BrowserifyStaticLibs
-  env.registerGenerator 'browserify', (contents, callback) ->
-    callback null, {browserifyLibs: libraryContent}
+  if staticLibs.length > 0
+    libraryContent = new BrowserifyStaticLibs
+    env.registerGenerator 'browserify', (contents, callback) ->
+      callback null, {browserifyLibs: libraryContent}
+    env.locals.browserifyLibs = """<script src="#{ options.staticLibsFilename }"></script>"""
 
   callback()
